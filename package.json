@@ -12,7 +12,10 @@
     "prompt-async": "^0.9.9",
     "qrcode-terminal": "^0.12.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^7.14.0",
+    "eslint-config-google": "^0.14.0"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "jest"

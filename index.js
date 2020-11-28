@@ -17,6 +17,16 @@ const {
 const jam = moment().format('HH:mm:ss');
 const parsing = require('./send.js');
 const quran = require('./read.js');
+const express = require('express');
+const app = express();
+const path = require('path');
+
+
+app.use(express.static(__dirname + '/'));
+app.get('*', (req, res) =>{
+  res.sendFile(path.resolve(__dirname, './src/index.html'));
+});
+app.listen(process.env.PORT || 8080);
 
 // initialized WA
 const con = new WAConnection();
@@ -71,7 +81,7 @@ con.on('message-new', async (msg) => {
         textToSend += `Surah ke- *${value}* tidak ada`;
       }
     }
-    await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+    await con.sendMessage(nomor, textToSend, MessageType.text, {quoted: msg});
 
     // if message startsWith select
   } else if (command === 'select') {
