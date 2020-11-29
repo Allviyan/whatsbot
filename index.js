@@ -170,10 +170,10 @@ con.on('message-new', async (msg) => {
     text += 'Kamu bisa mensupport saya dengan membelikan aku kopi\n';
     text += '\n';
     await con.sendMessage(nomor, text, MessageType.text);
-  } else if (command !== '') {
+  } else if (pesan !== '') {
     badword.forEach((word) => {
       if (command.includes(word)) {
-        con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
+        con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', MessageType.text, { quoted: msg });
       }
     });
   }
