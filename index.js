@@ -147,7 +147,7 @@ con.on('message-new', async (msg) => {
     text += 'Penggunaan:\n';
     text += '   *!quran <nama surah/nomor surah>*\n';
     text += 'Contoh:\n';
-    text += '   *!quran*l al fatihah* atau *quran 1*\n\n';
+    text += '   *!quran alfatihah* atau *!quran 1*\n\n';
     text += 'Mendaptkan surah secara spesifik\n';
     text += 'Penggunaan: \n';
     text += '  *!specify <nama surah/nomor surah>* ayat yang mau di tampilkan\n';
@@ -162,7 +162,7 @@ con.on('message-new', async (msg) => {
     text += '  *!search surga*\n\n';
     text += 'Tampilkan ayat tertentu pada surah\n';
     text += 'Penggunaan:\n';
-    text += '  *!select <nama surah/nomor surah> <nomor ayat>*';
+    text += '  *!select <nama surah/nomor surah> <nomor ayat>*\n';
     text += 'Contoh:\n';
     text += '  *!select Ar rahman 57*\n\n';
     text += 'Ok, saat ini saya baru itu\n';
@@ -173,7 +173,7 @@ con.on('message-new', async (msg) => {
   } else if (command !== '') {
     badword.forEach((word) => {
       if (command.includes(word)) {
-         con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
+        con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
       }
     });
   }
