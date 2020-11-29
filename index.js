@@ -59,6 +59,7 @@ con.on('message-new', async (msg) => {
   const nomor = msg.key.remoteJid;
   const [cmd, value] = split(pesan);
   const command = cmd.toLowerCase();
+  const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw'];
 
   // Handler if received new message
 
@@ -141,28 +142,39 @@ con.on('message-new', async (msg) => {
   } else if (command === 'command') {
     console.log(`[${jam}] memgirim permintaan: ${pesan}`);
     let text = '';
-    text += 'Hi, Saya Quran bot\n';
+    text += '\n\nHi, Saya Quran bot\n';
     text += 'Saya punya beberapa perintah disini\n\n';
     text += 'Penggunaan:\n';
-    text += '   *quran* <nama surah/nomor surah>\n';
+    text += '   *!quran* <nama surah/nomor surah>\n';
     text += 'Contoh:\n';
-    text += '   *quran* al fatihah atau *quran* 1\n\n';
+    text += '   *!quran* al fatihah atau *quran* 1\n\n';
     text += 'Mendaptkan surah secara spesifik\n';
+    text += 'Penggunaan: \n';
+    text += '  *!specify* <nama surah/nomor surah> ayat yang mau di tampilkan\n';
     text += 'Contoh:\n';
-    text += '  *specify* 1 5-  => Mulai dari ayat 5 sampai selesai\n';
-    text += '  *specify* 1 -5  => Mulai dari ayat 1 sampai 5\n';
-    text += '  *specify* 2 5-10  => Mulai dari ayat 5 sampai 10\n\n';
+    text += '  *!specify* 1 5-  => Mulai dari ayat 5 sampai selesai\n';
+    text += '  *!specify* 1 -5  => Mulai dari ayat 1 sampai 5\n';
+    text += '  *!specify* 2 5-10  => Mulai dari ayat 5 sampai 10\n\n';
     text += 'Cari kata tertentu di alquran\n';
+    text += 'Penggunaan\n';
+    text += '  *!search* <kata>\n';
     text += 'Contoh: \n';
-    text += '  *search* <kata>\n';
-    text += '  *search* surga\n\n';
+    text += '  *!search* surga\n\n';
     text += 'Tampilkan ayat tertentu pada surah\n';
+    text += 'Penggunaan:\n';
+    text += '  *!select <nama surah/nomor surah> <nomor ayat>';
     text += 'Contoh:\n';
-    text += '  *select* Ar rahman 57\n\n';
+    text += '  *!select* Ar rahman 57\n\n';
     text += 'Ok, saat ini saya baru itu\n';
     text += 'Jika kamu bersedia, Bisahkah kamu untuk membagikan aku dikontakmu\n';
     text += 'Kamu bisa mensupport saya dengan membelikan aku kopi\n';
     text += '\n';
     await con.sendMessage(nomor, text, MessageType.text);
+  } else if (command !== '') {
+    badword.forEach(async (word) => {
+      if (command.includes(word)) {
+        await con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: pesan });
+      }
+    });
   }
 });
