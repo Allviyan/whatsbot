@@ -64,7 +64,7 @@ con.on('message-new', async (msg) => {
   // Handler if received new message
 
   // message startsWith quran
-  if (command === 'quran') {
+  if (command === '!quran') {
     let textToSend = '';
     if (isNaN(value)) {
       console.log(`[${jam}] memgirim permintaan: ${pesan}`);
@@ -85,7 +85,7 @@ con.on('message-new', async (msg) => {
     await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
 
     // if message startsWith select
-  } else if (command === 'select') {
+  } else if (command === '!select') {
     console.log(`[${jam}] memgirim permintaan: ${pesan}`);
     let textToSend = '';
     const [keyword, ayat] = value.split(' ');
@@ -98,7 +98,7 @@ con.on('message-new', async (msg) => {
       textToSend += `Ayat *${ayat}* tidak ada di surah *${surah.surah}*`;
     }
     await con.sendMessage(nomor, textToSend, MessageType.text);
-  } else if (command === 'search') {
+  } else if (command === '!search') {
     console.log(`[${jam}] memgirim permintaan: ${pesan}`);
     let textToSend = '';
     const arr = quran.findAyat(value);
@@ -111,7 +111,7 @@ con.on('message-new', async (msg) => {
         await con.sendMessage(nomor, textToSend, MessageType.text);
       });
     }
-  } else if (command === 'specify') {
+  } else if (command === '!specify') {
     console.log(`[${jam}] memgirim permintaan: ${pesan}`);
     let textToSend = '';
     const [surah, range] = split(value);
@@ -139,32 +139,32 @@ con.on('message-new', async (msg) => {
       textToSend += 'Format salah!';
     }
     await con.sendMessage(nomor, textToSend, MessageType.text);
-  } else if (command === 'command') {
+  } else if (command === '!command') {
     console.log(`[${jam}] memgirim permintaan: ${pesan}`);
     let text = '';
     text += '\n\nHi, Saya Quran bot\n';
     text += 'Saya punya beberapa perintah disini\n\n';
     text += 'Penggunaan:\n';
-    text += '   *!quran* <nama surah/nomor surah>\n';
+    text += '   *!quran <nama surah/nomor surah>*\n';
     text += 'Contoh:\n';
-    text += '   *!quran* al fatihah atau *quran* 1\n\n';
+    text += '   *!quran*l al fatihah* atau *quran 1*\n\n';
     text += 'Mendaptkan surah secara spesifik\n';
     text += 'Penggunaan: \n';
-    text += '  *!specify* <nama surah/nomor surah> ayat yang mau di tampilkan\n';
+    text += '  *!specify <nama surah/nomor surah>* ayat yang mau di tampilkan\n';
     text += 'Contoh:\n';
-    text += '  *!specify* 1 5-  => Mulai dari ayat 5 sampai selesai\n';
-    text += '  *!specify* 1 -5  => Mulai dari ayat 1 sampai 5\n';
-    text += '  *!specify* 2 5-10  => Mulai dari ayat 5 sampai 10\n\n';
+    text += '  *!specify 1 5-*  => Mulai dari ayat 5 sampai selesai\n';
+    text += '  *!specify 1 -5*  => Mulai dari ayat 1 sampai 5\n';
+    text += '  *!specify 2 5-10*  => Mulai dari ayat 5 sampai 10\n\n';
     text += 'Cari kata tertentu di alquran\n';
     text += 'Penggunaan\n';
-    text += '  *!search* <kata>\n';
+    text += '  *!search <kata>*\n';
     text += 'Contoh: \n';
-    text += '  *!search* surga\n\n';
+    text += '  *!search surga*\n\n';
     text += 'Tampilkan ayat tertentu pada surah\n';
     text += 'Penggunaan:\n';
-    text += '  *!select <nama surah/nomor surah> <nomor ayat>';
+    text += '  *!select <nama surah/nomor surah> <nomor ayat>*';
     text += 'Contoh:\n';
-    text += '  *!select* Ar rahman 57\n\n';
+    text += '  *!select Ar rahman 57*\n\n';
     text += 'Ok, saat ini saya baru itu\n';
     text += 'Jika kamu bersedia, Bisahkah kamu untuk membagikan aku dikontakmu\n';
     text += 'Kamu bisa mensupport saya dengan membelikan aku kopi\n';
