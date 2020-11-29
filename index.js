@@ -16,11 +16,12 @@ const {
 
 const jam = moment().format('HH:mm:ss');
 const express = require('express');
+const { text } = require('express');
+const path = require('path');
 const parsing = require('./send.js');
 const quran = require('./read.js');
 
 const app = express();
-const path = require('path');
 
 app.use(express.static(`${__dirname}/`));
 app.get('*', (req, res) => {
@@ -171,10 +172,15 @@ con.on('message-new', async (msg) => {
     text += '\n';
     await con.sendMessage(nomor, text, MessageType.text);
   } else if (pesan !== '') {
-    badword.forEach((word) => {
-      if (command.includes(word)) {
-        con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', MessageType.text, { quoted: msg });
+    const pesanlist = pesan.split(' ');
+    let textToSend = '';
+    pesanlist.forEach((kata) => {
+      if (badword.includes(kata)) {
+        textToSend = 'Jangan selalu ngebadword kawan. Itu sangat tidak baik';
       }
     });
+    if (textToSend !== '') {
+      await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+    }
   }
 });
