@@ -171,9 +171,9 @@ con.on('message-new', async (msg) => {
     text += '\n';
     await con.sendMessage(nomor, text, MessageType.text);
   } else if (command !== '') {
-    badword.forEach(async (word) => {
+    badword.forEach((word) => {
       if (command.includes(word)) {
-        await con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
+         con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
       }
     });
   }
