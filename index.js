@@ -173,7 +173,7 @@ con.on('message-new', async (msg) => {
   } else if (command !== '') {
     badword.forEach(async (word) => {
       if (command.includes(word)) {
-        await con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: pesan });
+        await con.sendMessage(nomor, 'Jangan selalu ngebadword kawan. Itu sangat tidak baik', { quoted: msg });
       }
     });
   }
