@@ -173,12 +173,15 @@ con.on('message-new', async (msg) => {
     await con.sendMessage(nomor, text, MessageType.text);
   } else if (pesan !== '') {
     const pesanlist = pesan.split(' ');
+    console.log(pesanlist);
     let textToSend = '';
     pesanlist.forEach((kata) => {
+      console.log(kata);
       if (badword.includes(kata)) {
         textToSend = 'Jangan selalu ngebadword kawan. Itu sangat tidak baik';
       }
     });
+    console.log(textToSend);
     if (textToSend !== '') {
       await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
     }
