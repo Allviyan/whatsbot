@@ -8,38 +8,38 @@ const difflib = require('difflib');
 const listSurah = [
   'Al Fatihah',
   'Al Baqarah',
-  "Ali 'Imran",
-  "An Nisa'",
-  "Al Ma'idah",
-  "Al An'am",
-  "Al A'raf\xa0",
+  'Ali \'Imran',
+  'An Nisa\'',
+  'Al Ma\'idah',
+  'Al An\'am',
+  'Al A\'raf\xa0',
   'Al Anfal',
   'At Taubah',
   'Yunus',
   'Hud',
   'Yusuf',
-  "Ar Ra'd",
+  'Ar Ra\'d',
   'Ibrahim',
   'Al Hijr',
   'An Nahl',
-  "Al Isra'",
+  'Al Isra\'',
   'Al Kahfi',
   'Maryam',
   'Taha',
-  "Al Anbiya'",
+  'Al Anbiya\'',
   'Al Hajj',
-  "Al Mu'minun",
+  'Al Mu\'minun',
   'An Nur',
   'Al Furqan',
-  "Asy Syu'ara'",
+  'Asy Syu\'ara\'',
   'An Naml',
   'Al Qasas',
-  "Al 'Ankabut",
+  'Al \'Ankabut',
   'Ar Rum',
   'Luqman',
   'As Sajdah',
   'Al Ahzab',
-  "Saba'",
+  'Saba\'',
   'Fatir',
   'Yasin',
   'As Saffat',
@@ -61,13 +61,13 @@ const listSurah = [
   'An Najm',
   'Al Qamar',
   'Ar Rahman',
-  "Al Waqi'ah",
+  'Al Waqi\'ah',
   'Al Hadid',
   'Al Mujadilah',
   'Al Hasyr',
   'Al Mumtahanah',
   'As Saff',
-  "Al Jumu'ah",
+  'Al Jumu\'ah',
   'Al-Munafiqun',
   'At Tagabun',
   'At Talaq',
@@ -75,7 +75,7 @@ const listSurah = [
   'Al Mulk',
   'Al Qalam',
   'Al Haqqah',
-  "Al Ma'arij",
+  'Al Ma\'arij',
   'Nuh',
   'Al Jinn',
   'Al Muzzammil',
@@ -83,9 +83,9 @@ const listSurah = [
   'Al Qiyamah',
   'Al Insan',
   'Al Mursalat',
-  "An Naba'",
-  "An Nazi'at",
-  "'Abasa",
+  'An Naba\'',
+  'An Nazi\'at',
+  '\'Abasa',
   'At Takwir',
   'Al Infitar',
   'Al Mutaffifin',
@@ -101,18 +101,18 @@ const listSurah = [
   'Ad Duha',
   'Asy Syarh',
   'At Tin',
-  "Al 'Alaq",
+  'Al \'Alaq',
   'Al Qadr',
   'Al Bayyinah',
   'Al Zalzalah',
-  "Al 'Adiyat",
-  "Al Qari'ah",
+  'Al \'Adiyat',
+  'Al Qari\'ah',
   'At Takasur',
-  "Al 'Asr",
+  'Al \'Asr',
   'Al Humazah',
   'Al Fil',
   'Quraisy',
-  "Al Ma'un",
+  'Al Ma\'un',
   'Al Kausar',
   'Al Kafirun',
   'An Nasr',
@@ -178,7 +178,7 @@ function selectAyat(surah, ayat) {
       obj.surah = quran.surah;
       obj.nomor = quran.nomor;
       quran.data.forEach((nomor) => {
-        if (nomor.ayat === ayat) {
+        if (Number(nomor.ayat) === Number(ayat)) {
           arr.push(nomor);
         }
       });
@@ -197,8 +197,8 @@ function selectRange(surah, start = undefined, end = undefined) {
     if (start !== undefined && end !== undefined) {
       if (namaSurah === quran.surah) {
         quran.data.forEach((ayat) => {
-          if (end >= ayat.ayat) {
-            if (start <= ayat.ayat) {
+          if (Number(end) >= Number(ayat.ayat)) {
+            if (Number(start) <= Number(ayat.ayat)) {
               data.push(ayat);
             }
           }
@@ -213,7 +213,7 @@ function selectRange(surah, start = undefined, end = undefined) {
       if (start) {
         if (namaSurah === quran.surah) {
           quran.data.forEach((ayat) => {
-            if (start <= ayat.ayat) {
+            if (Number(start) <= Number(ayat.ayat)) {
               data.push(ayat);
             }
           });
@@ -227,7 +227,7 @@ function selectRange(surah, start = undefined, end = undefined) {
       if (end) {
         if (namaSurah === quran.surah) {
           quran.data.forEach((ayat) => {
-            if (end >= ayat.ayat) {
+            if (Number(end) >= Number(ayat.ayat)) {
               data.push(ayat);
             }
           });
