@@ -15,15 +15,15 @@ const {
 } = require('@adiwajshing/baileys');
 
 const jam = moment().format('HH:mm:ss');
+const express = require('express');
 const parsing = require('./send.js');
 const quran = require('./read.js');
-const express = require('express');
+
 const app = express();
 const path = require('path');
 
-
-app.use(express.static(__dirname + '/'));
-app.get('*', (req, res) =>{
+app.use(express.static(`${__dirname}/`));
+app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, './src/index.html'));
 });
 app.listen(process.env.PORT || 8080);
@@ -81,7 +81,7 @@ con.on('message-new', async (msg) => {
         textToSend += `Surah ke- *${value}* tidak ada`;
       }
     }
-    await con.sendMessage(nomor, textToSend, MessageType.text, {quoted: msg});
+    await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
 
     // if message startsWith select
   } else if (command === 'select') {
@@ -116,14 +116,14 @@ con.on('message-new', async (msg) => {
     const [surah, range] = split(value);
     if (range.includes('-')) {
       if (range.startsWith('-')) { // handler message if startsWith "-"
-        const result = quran.selectRange(surah, range.replace('-', ''));
+        const result = quran.selectRange(surah, undefined, range.replace('-', ''));
         if (result.data.length === 0) {
           textToSend += `Ayat *${range.replace('-', '')}* tidak di temukan`;
         } else {
           textToSend += parsing.sendSelectSurah(result);
         }
       } else if (range.endsWith('-')) {
-        const result = quran.selectRange(surah, undefined, range.replace('-', ''));
+        const result = quran.selectRange(surah, range.replace('-', ''));
         textToSend += parsing.sendSelectSurah(result);
       } else {
         const [start, end] = range.split('-');
