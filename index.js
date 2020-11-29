@@ -60,7 +60,7 @@ con.on('message-new', async (msg) => {
   const nomor = msg.key.remoteJid;
   const [cmd, value] = split(pesan);
   const command = cmd.toLowerCase();
-  const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw'];
+  const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw', 'kntl', 'kontol','memek'];
 
   // Handler if received new message
 
