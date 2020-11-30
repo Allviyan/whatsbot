@@ -150,7 +150,6 @@ function findAyat(word) {
         content.nomor = surah.nomor;
         content.data = ayat;
         arr.push(content);
-        // console.log(dict(ayat.arti, ayat.arab));
       }
     });
   });

@@ -109,7 +109,7 @@ con.on('message-new', async (msg) => {
     } else {
       arr.forEach(async (ayat) => {
         textToSend = parsing.sendFindAyat(ayat);
-        await con.sendMessage(nomor, textToSend.replace(value, `*${value}*`), MessageType.text);
+        await con.sendMessage(nomor, textToSend, MessageType.text);
       });
     }
   } else if (command === '!specify') {
