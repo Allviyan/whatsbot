@@ -8,6 +8,7 @@
     "difflib": "^0.2.4",
     "express": "^4.9.8",
     "moment": "^2.29.1",
+    "nodemon": "^2.0.6",
     "prompt": "^1.0.0",
     "prompt-async": "^0.9.9",
     "qrcode-terminal": "^0.12.0"
@@ -19,7 +20,7 @@
     "eslint-plugin-import": "^2.22.1"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon index.js",
     "test": "jest"
   },
   "repository": {

@@ -60,7 +60,7 @@ con.on('message-new', async (msg) => {
   const nomor = msg.key.remoteJid;
   const [cmd, value] = split(pesan);
   const command = cmd.toLowerCase();
-  const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw', 'kntl', 'kontol','memek'];
+  const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw', 'kntl', 'kontol', 'memek'];
 
   // Handler if received new message
 
@@ -109,7 +109,7 @@ con.on('message-new', async (msg) => {
     } else {
       arr.forEach(async (ayat) => {
         textToSend = parsing.sendFindAyat(ayat);
-        await con.sendMessage(nomor, textToSend, MessageType.text);
+        await con.sendMessage(nomor, textToSend.replace(value, `*${value}*`), MessageType.text);
       });
     }
   } else if (command === '!specify') {
