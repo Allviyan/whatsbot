@@ -10,8 +10,8 @@ const jam = moment().format('HH:mm:ss');
 const express = require('express');
 const { text } = require('express');
 const path = require('path');
-const parsing = require('./send.js');
-const quran = require('./read.js');
+const parsing = require('./send.js'); // module buatan gw
+const quran = require('./read.js'); // module buatan gw
 
 const app = express();
 
@@ -98,8 +98,8 @@ async function messagesHandler() {
       if (value !== '') {
         const arr = quran.findAyat(value.toLowerCase());
         if (arr.length === 0) {
-          textToSend += `Keyword ${value} tidak ditemukan`;
-          await con.sendMessage(nomor, textToSend, MessageType.text);
+          textToSend += `Keyword *${value}* tidak ditemukan`;
+          await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
         } else {
           arr.forEach(async (ayat) => {
             textToSend = parsing.sendFindAyat(ayat);
@@ -192,5 +192,4 @@ async function messagesHandler() {
     }
   });
 }
-messagesHandler()
-  .catch((err) => console.log(`[${jam}] Error: ${err}`));
+messagesHandler().catch((err) => console.log(`[${jam}] Error: ${err}`));
