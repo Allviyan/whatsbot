@@ -143,7 +143,7 @@ function findAyat(word) {
   const file = eval(fs.readFileSync('./quran.json', 'utf-8'));
   file.forEach((surah) => {
     surah.data.forEach((ayat) => {
-      const kata = ayat.arti.toLowerCase().split(' ');
+      const kata = ayat.arti.replace(/,/g, ' ').toLowerCase().split(' ');
       if (kata.includes(word)) {
         const content = {};
         content.surah = surah.surah;
