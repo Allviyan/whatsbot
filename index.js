@@ -1,17 +1,13 @@
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const moment = require('moment');
-const {
-  WAConnection,
-  MessageType,
-} = require('@adiwajshing/baileys');
+const { WAConnection, MessageType } = require('@adiwajshing/baileys');
 
 const jam = moment().format('HH:mm:ss');
 const express = require('express');
-const { text } = require('express');
 const path = require('path');
-const parsing = require('./send.js'); // module buatan gw
-const quran = require('./read.js'); // module buatan gw
+const { setMaxListeners } = require('process');
+const handle = require('./handle.js');
 
 const app = express();
 
@@ -34,7 +30,7 @@ con.on('qr', (qr) => {
 });
 con.on('credentials-updated', () => {
   // save credentials whenever updated
-  console.log('credentials updated!');
+  console.log(`[${jam}] Credentials update`);
   // get all the auth info we need to restore this session
   const authInfo = con.base64EncodedAuthInfo();
   fs.writeFileSync('./session.json', JSON.stringify(authInfo, null, '\t')); // save this info to a file
@@ -45,151 +41,122 @@ fs.existsSync('./session.json') && con.loadAuthInfo('./session.json');
 con.connect();
 
 // get messages
-const split = (string) => [string.split(' ', 1).toString(), string.split(' ').slice(1).join(' ')];
-async function messagesHandler() {
-  con.on('message-new', async (msg) => {
-  // const messageContent = msg.message;
-    const pesan = msg.message.conversation;
+const split = (string) => [
+  string.split(' ', 1).toString(),
+  string.split(' ').slice(1).join(' '),
+];
+
+async function handlerMessages(msg) {
+  if (msg.message !== null || msg.conversation !== null) {
+    const pesan = msg.message.extendedTextMessage !== null && !msg.key.fromMe
+      ? msg.message.extendedTextMessage.text
+      : msg.message.conversation;
     const nomor = msg.key.remoteJid;
     const [cmd, value] = split(pesan);
     const command = cmd.toLowerCase();
-    const badword = ['ajg', 'anjing', 'jancok', 'asu', 'asw', 'kntl', 'kontol', 'memek'];
-    con.chatRead(msg.key.remoteJid);
+    const badword = [
+      'ajg',
+      'anjing',
+      'jancok',
+      'jncok',
+      'jancok',
+      'asu',
+      'asw',
+      'kntl',
+      'kontol',
+      'memek',
+      'bangsat',
+      'bgst',
+      'bangst',
+      'bgsat',
+    ];
 
     // Handler if received new message
     // message startsWith quran
     if (command === '!quran') {
-      let textToSend = '';
-      if (!parseInt(value)) {
-        console.log(`[${jam}] mengirim permintaan: ${pesan}`);
-        const surah = quran.selectSurah(value);
-        if (surah) {
-          textToSend += parsing.sendSelectSurah(surah);
-        } else {
-          textToSend += `Surah *${value}* tidak ada`;
-        }
-      } else {
-        const surah = quran.selectSurah(value);
-        if (surah) {
-          textToSend += parsing.sendSelectSurah(surah);
-        } else {
-          textToSend += `Surah ke- *${value}* tidak ada`;
-        }
-      }
-      await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      const textToSend = handle.quranSurah(value);
+      await con.sendMessage(nomor, textToSend, MessageType.text, {
+        quoted: msg,
+      });
+      console.log(' ..done');
 
-    // if message startsWith select
+      // if message startsWith select
     } else if (command === '!select') {
-      console.log(`[${jam}] mengirim permintaan: ${pesan}`);
-      let textToSend = '';
-      const [keyword, ayat] = value.split(' ');
-      const surah = quran.selectAyat(keyword, ayat);
-      if (!surah.surah) {
-        textToSend += `\nSurah *${keyword}* tidak ditemukan\n\nPastikan format benar`;
-      } else if (surah.data.length !== 0) {
-        textToSend += parsing.sendSelectSurah(surah);
-      } else if (surah.surah) {
-        textToSend += `Ayat *${ayat}* tidak ada di surah *${surah.surah}*`;
-      }
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      const textToSend = handle.select(value);
       await con.sendMessage(nomor, textToSend, MessageType.text);
+      console.log(' ..done');
     } else if (command === '!search') {
-      console.log(`[${jam}] mengirim permintaan: ${pesan}`);
-      let textToSend = '';
-      if (value !== '') {
-        const arr = quran.findAyat(value.toLowerCase());
-        if (arr.length === 0) {
-          textToSend += `Keyword *${value}* tidak ditemukan`;
-          await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
-        } else {
-          arr.forEach(async (ayat) => {
-            textToSend = parsing.sendFindAyat(ayat);
-            const replacer = new RegExp(` ${value} `, 'gi');
-            const textSend = textToSend.replace(replacer, ` *${value}* `);
-            await con.sendMessage(nomor, textSend, MessageType.text);
-          });
-        }
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan}`);
+      const textToSend = handle.search(value.toLowerCase());
+      if (textToSend.length === 1) {
+        await con.sendMessage(nomor, textToSend[0], MessageType.text, {
+          quoted: msg,
+        });
       } else {
-        textToSend += '\nPastikan format benar\nContoh *!search Adam*\n';
-        con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+        textToSend.forEach(async (mainText) => {
+          await con.sendMessage(nomor, mainText, MessageType.text);
+        });
       }
+      console.log(' ..done');
     } else if (command === '!specify') {
-      console.log(`[${jam}] mengirim permintaan: ${pesan}`);
-      let textToSend = '';
-      const [surah, range] = split(value);
-      if (range.includes('-')) {
-        if (range.startsWith('-')) { // handler message if startsWith "-"
-          const result = quran.selectRange(surah, undefined, range.replace('-', ''));
-          if (result.data.length === 0) {
-            textToSend += `Ayat *${range.replace('-', '')}* tidak di temukan`;
-          } else {
-            textToSend += parsing.sendSelectSurah(result);
-          }
-        } else if (range.endsWith('-')) {
-          const result = quran.selectRange(surah, range.replace('-', ''));
-          textToSend += parsing.sendSelectSurah(result);
-        } else {
-          const [start, end] = range.split('-');
-          const result = quran.selectRange(surah, start, end);
-          if (result.data.length === 0) {
-            textToSend += 'Format salah!, ayat mulai lebih besar dari ayat akhir';
-          } else {
-            textToSend += parsing.sendSelectSurah(result);
-          }
-        }
-      } else {
-        textToSend += '*Format salah!*\n';
-        textToSend += 'Penggunaan:\n  *!specify <nama surah/nomor surah> <ayat>*\n\n';
-        textToSend += 'Contoh:\n  *!specify 1 -2* => Menampilkan Surah Alfatiha dari ayat 1 sampai 2\n';
-        textToSend += '  *!specify 1 2-* => Menampilkan surah alfatihah dari ayat 2 sampai ayat akhir\n';
-        textToSend += '  *!specify 1 2-5* => Menampilkan surah alfatihah dari ayat 2 spai 5\n';
-      }
-      await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      const textToSend = handle.specify(value);
+      await con.sendMessage(nomor, textToSend, MessageType.text, {
+        quoted: msg,
+      });
+      console.log(' ..done');
     } else if (command === '!command') {
-      console.log(`[${jam}] mengirim permintaan: ${pesan}`);
-      let textToSend = '';
-      textToSend += '\n\nHi *Jagoan*, Saya Quran bot\n';
-      textToSend += 'Saya punya beberapa perintah disini\n\n';
-      textToSend += 'Penggunaan:\n';
-      textToSend += '   *!quran <nama surah/nomor surah>*\n';
-      textToSend += 'Contoh:\n';
-      textToSend += '   *!quran alfatihah* atau *!quran 1*\n\n';
-      textToSend += 'Mendaptkan surah secara spesifik\n';
-      textToSend += 'Penggunaan: \n';
-      textToSend += '  *!specify <nama surah/nomor surah>* ayat yang mau di tampilkan\n';
-      textToSend += 'Contoh:\n';
-      textToSend += '  *!specify 1 5-*  => Mulai dari ayat 5 sampai selesai\n';
-      textToSend += '  *!specify 1 -5*  => Mulai dari ayat 1 sampai 5\n';
-      textToSend += '  *!specify 2 5-10*  => Mulai dari ayat 5 sampai 10\n\n';
-      textToSend += 'Cari kata tertentu di alquran\n';
-      textToSend += 'Penggunaan\n';
-      textToSend += '  *!search <kata>*\n';
-      textToSend += 'Contoh: \n';
-      textToSend += '  *!search surga*\n\n';
-      textToSend += 'Tampilkan ayat tertentu pada surah\n';
-      textToSend += 'Penggunaan:\n';
-      textToSend += '  *!select <nama surah/nomor surah> <nomor ayat>*\n';
-      textToSend += 'Contoh:\n';
-      textToSend += '  *!select Arrahman 57*\n\n';
-      textToSend += '*[ NOTE ] PENULISAN NAMA SURAH JANGAN PAKAI SPASI*\n\n';
-      textToSend += 'Ok, saat ini saya baru itu\n';
-      textToSend += 'Jika kamu bersedia, Bisahkah kamu untuk membagikan aku dikontakmu\n';
-      textToSend += 'Kamu bisa mensupport saya dengan membelikan aku kopi\n';
-      textToSend += '\n';
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan}`);
+      const textToSend = handle.command();
       await con.sendMessage(nomor, textToSend, MessageType.text);
+      console.log(' ..done');
     } else if (pesan !== '') {
       let textToSend = '';
       const pesanlist = pesan.toLowerCase().split(' ');
       pesanlist.forEach((kata) => {
         if (badword.includes(kata)) {
+          console.log(`[${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} badword detected: ${pesan}`);
           textToSend = 'Jangan selalu ngebadword kawan. Itu sangat tidak baik';
-        } else if (nomor.endsWith('net')) {
-          con.sendMessage(nomor, `Command *${pesan}* tidak terdaftar\nType *!command* untuk melihat daftar perintah`, MessageType.text, { quoted: msg });
+          return;
+        } if (nomor.endsWith('net') && textToSend === '') {
+          textToSend = `Command *${pesan}* tidak terdaftar\nType *!command* untuk melihat daftar perintah`;
         }
       });
+
       if (textToSend !== '') {
-        await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
+        con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
       }
+    }
+  }
+}
+
+con.setMaxListeners(50);
+async function messagesHandler() {
+  con.on('open', async () => {
+  console.log(`[${jam}] You have ${con.chats.length} chats`);
+    const getunread = await con.loadAllUnreadMessages();
+    const unread = [...new Set(getunread)];
+    if (unread.length !== 0) {
+      unread.forEach(async (m) => {
+        try {
+          await con.chatRead(m.key.remoteJid);
+          await handlerMessages(m);
+        } catch (err) {
+          console.log(`[${jam}] ${err}`);
+        }
+      });
+    }
+  });
+  con.on('message-new', async (msg) => {
+    try {
+      await con.chatRead(msg.key.remoteJid);
+      handlerMessages(msg);
+    } catch (err) {
+      console.log(`[${jam}] ${err}`);
+      handlerMessages(msg);
     }
   });
 }
-messagesHandler().catch((err) => console.log(`[${jam}] Error: ${err}`));
+messagesHandler();
