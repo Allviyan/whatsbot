@@ -1,10 +1,15 @@
+const { text } = require('express');
 const pars = require('./send');
-const quran = require('./read.js');
+const quran = require('./read');
 
 const split = (string) => [string.split(' ', 1).toString(), string.split(' ').slice(1).join(' ')];
 function quranSurah(value) {
   let textToSend = '';
-  if (!parseInt(value)) {
+  if (value === '') {
+    textToSend += 'Penggunaan *!quran <nama surah/nomor surah>*\n';
+    textToSend += 'Contoh: *!quran 1* atau *!quran alfatihah*\n\n';
+    textToSend += '*[ NOTE ] PENULISAN SURAH JANGAN PAKAI SPASI*';
+  } else if (!parseInt(value)) {
     const surah = quran.selectSurah(value);
     if (surah) {
       textToSend += pars.sendSelectSurah(surah);
@@ -23,14 +28,23 @@ function quranSurah(value) {
 }
 function select(value) {
   let textToSend = '';
-  const [keyword, ayat] = value.split(' ');
-  const surah = quran.selectAyat(keyword, ayat);
-  if (!surah.surah) {
-    textToSend += `\nSurah *${keyword}* tidak ditemukan\n\nPastikan format benar`;
-  } else if (surah.data.length !== 0) {
-    textToSend += pars.sendSelectSurah(surah);
-  } else if (surah.surah) {
-    textToSend += `Ayat *${ayat}* tidak ada di surah *${surah.surah}*`;
+  if (value === '') {
+    textToSend += '\nTampilkan ayat tertentu pada surah\n';
+    textToSend += 'Penggunaan:\n';
+    textToSend += '  *!select <nama surah/nomor surah> <nomor ayat>*\n';
+    textToSend += 'Contoh:\n';
+    textToSend += '  *!select Arrahman 57*\n\n';
+    textToSend += '*[ NOTE ] PENULISAN NAMA SURAH JANGAN PAKAI SPASI*';
+  } else {
+    const [keyword, ayat] = value.split(' ');
+    const surah = quran.selectAyat(keyword, ayat);
+    if (!surah.surah) {
+      textToSend += `\nSurah *${keyword}* tidak ditemukan\n\nPastikan format benar`;
+    } else if (surah.data.length !== 0) {
+      textToSend += pars.sendSelectSurah(surah);
+    } else if (surah.surah) {
+      textToSend += `Ayat *${ayat}* tidak ada di surah *${surah.surah}*`;
+    }
   }
   return textToSend;
 }
@@ -53,32 +67,43 @@ function search(value) {
       });
     }
   } else {
-    textToSend += '\nPastikan format benar\nContoh *!search Adam*\n';
+    textToSend += '\nPenggunaan\nContoh *!search Adam*\n';
     newArr.push(textToSend);
   }
   return newArr;
 }
 function specify(value) {
+  console.log(value);
   let textToSend = '';
-  const [surah, range] = split(value);
-  if (range.includes('-')) {
-    if (range.startsWith('-')) { // handler message if startsWith "-"
-      const result = quran.selectRange(surah, undefined, range.replace('-', ''));
-      if (result.data.length === 0) {
-        textToSend += `Ayat *${range.replace('-', '')}* tidak di temukan`;
-      } else {
+  if (value === '') {
+    textToSend += 'Mendaptkan surah secara spesifik\n';
+    textToSend += 'Penggunaan: \n';
+    textToSend += '  *!specify <nama surah/nomor surah>* ayat yang mau di tampilkan\n';
+    textToSend += 'Contoh:\n';
+    textToSend += '  *!specify 1 5-*  => Mulai dari ayat 5 sampai selesai\n';
+    textToSend += '  *!specify 1 -5*  => Mulai dari ayat 1 sampai 5\n';
+    textToSend += '  *!specify 2 5-10*  => Mulai dari ayat 5 sampai 10\n\n';
+  } else {
+    const [surah, range] = split(value);
+    if (range.includes('-')) {
+      if (range.startsWith('-')) { // handler message if startsWith "-"
+        const result = quran.selectRange(surah, undefined, range.replace('-', ''));
+        if (result.data.length === 0) {
+          textToSend += `Ayat *${range.replace('-', '')}* tidak di temukan`;
+        } else {
+          textToSend += pars.sendSelectSurah(result);
+        }
+      } else if (range.endsWith('-')) {
+        const result = quran.selectRange(surah, range.replace('-', ''));
         textToSend += pars.sendSelectSurah(result);
-      }
-    } else if (range.endsWith('-')) {
-      const result = quran.selectRange(surah, range.replace('-', ''));
-      textToSend += pars.sendSelectSurah(result);
-    } else {
-      const [start, end] = range.split('-');
-      const result = quran.selectRange(surah, start, end);
-      if (result.data.length === 0) {
-        textToSend += 'Format salah!, ayat mulai lebih besar dari ayat akhir';
       } else {
-        textToSend += pars.sendSelectSurah(result);
+        const [start, end] = range.split('-');
+        const result = quran.selectRange(surah, start, end);
+        if (result.data.length === 0) {
+          textToSend += 'Format salah!, ayat mulai lebih besar dari ayat akhir';
+        } else {
+          textToSend += pars.sendSelectSurah(result);
+        }
       }
     }
   }

@@ -22,10 +22,7 @@ const con = new WAConnection();
 
 // Startwith scan qr code
 con.on('qr', (qr) => {
-  qrcode.generate(qr, {
-    small: true,
-  });
-  con.regenerateQRIntervalMs = 1000; // no QR regen
+  qrcode.generate(qr, { small: true });
   console.log(`[${moment().format('HH:mm:ss')}] Scan the Qr code with app!`);
 });
 con.on('credentials-updated', () => {
@@ -47,10 +44,8 @@ const split = (string) => [
 ];
 
 async function handlerMessages(msg) {
-  if (msg.message !== null || msg.conversation !== null) {
-    const pesan = msg.message.extendedTextMessage !== null && !msg.key.fromMe
-      ? msg.message.extendedTextMessage.text
-      : msg.message.conversation;
+  if (msg.message !== null) {
+    const pesan = msg.message.extendedTextMessage !== null && !msg.key.fromMe ? msg.message.extendedTextMessage.text : msg.message.conversation;
     const nomor = msg.key.remoteJid;
     const [cmd, value] = split(pesan);
     const command = cmd.toLowerCase();
@@ -69,12 +64,16 @@ async function handlerMessages(msg) {
       'bgst',
       'bangst',
       'bgsat',
+      'ngtd',
+      'ngentod',
+      'telaso',
+      'tlso',
     ];
 
     // Handler if received new message
     // message startsWith quran
     if (command === '!quran') {
-      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Mengirim permintaan: ${pesan} `);
       const textToSend = handle.quranSurah(value);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
@@ -83,12 +82,12 @@ async function handlerMessages(msg) {
 
       // if message startsWith select
     } else if (command === '!select') {
-      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Mengirim permintaan: ${pesan} `);
       const textToSend = handle.select(value);
-      await con.sendMessage(nomor, textToSend, MessageType.text);
+      await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
       console.log(' ..done');
     } else if (command === '!search') {
-      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan}`);
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Mengirim permintaan: ${pesan}`);
       const textToSend = handle.search(value.toLowerCase());
       if (textToSend.length === 1) {
         await con.sendMessage(nomor, textToSend[0], MessageType.text, {
@@ -101,23 +100,23 @@ async function handlerMessages(msg) {
       }
       console.log(' ..done');
     } else if (command === '!specify') {
-      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan} `);
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Mengirim permintaan: ${pesan} `);
       const textToSend = handle.specify(value);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
       });
       console.log(' ..done');
     } else if (command === '!command') {
-      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} mengirim permintaan: ${pesan}`);
+      process.stdout.write(`\r [${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Mengirim permintaan: ${pesan}`);
       const textToSend = handle.command();
-      await con.sendMessage(nomor, textToSend, MessageType.text);
+      await con.sendMessage(nomor, textToSend, MessageType.text, { quoted: msg });
       console.log(' ..done');
     } else if (pesan !== '') {
       let textToSend = '';
       const pesanlist = pesan.toLowerCase().split(' ');
       pesanlist.forEach((kata) => {
         if (badword.includes(kata)) {
-          console.log(`[${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} badword detected: ${pesan}`);
+          console.log(`[${jam}] ${nomor.split('@s.whatsapp.net')[0].replace('62', '0')} Badword detected: ${pesan}`);
           textToSend = 'Jangan selalu ngebadword kawan. Itu sangat tidak baik';
           return;
         } if (nomor.endsWith('net') && textToSend === '') {
@@ -134,15 +133,15 @@ async function handlerMessages(msg) {
 
 con.setMaxListeners(50);
 async function messagesHandler() {
-  con.on('open', async () => {
-  console.log(`[${jam}] You have ${con.chats.length} chats`);
+  con.on('open', async () => { // firstly running, it will be get all unread messages
+    console.log(`[${jam}] You have ${con.chats.length} chats`);
     const getunread = await con.loadAllUnreadMessages();
     const unread = [...new Set(getunread)];
     if (unread.length !== 0) {
       unread.forEach(async (m) => {
         try {
-          await con.chatRead(m.key.remoteJid);
           await handlerMessages(m);
+          await con.chatRead(m.key.remoteJid);
         } catch (err) {
           console.log(`[${jam}] ${err}`);
         }
@@ -159,4 +158,8 @@ async function messagesHandler() {
     }
   });
 }
-messagesHandler();
+try {
+  messagesHandler();
+} catch (err) {
+  console.log(`[${jam}] ${err}`);
+}
