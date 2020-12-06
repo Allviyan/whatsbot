@@ -1,5 +1,5 @@
 <h1 align="center">Welcome to whatsapp-bot 👋</h1>
-<p>
+<p align="center">
   <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
   <img src="https://img.shields.io/badge/node-14.14.0-blue.svg" />
   <a href="https://github.com/asmin-dev/whatsbot#readme" target="_blank">
