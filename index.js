@@ -1,7 +1,16 @@
+/*
+ *
+ * WHATSAPP QURAN BOT
+ * AUTHOR: ASMIN | ZETT ID
+ * TEAM: XIUZCODE
+ * WE LOVE OPEN SOURCE
+ *
+ *
+ */
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const moment = require('moment');
-const { WAConnection, MessageType } = require('@adiwajshing/baileys');
+const { WAConnection, MessageType, WA_MESSAGE_STUB_TYPE } = require('@adiwajshing/baileys');
 
 const jam = moment().format('HH:mm:ss');
 const express = require('express');
@@ -62,6 +71,8 @@ async function handlerMessages(msg) {
     const badword = [
       'ajg',
       'anjing',
+      'anjink',
+      'anjinc',
       'jancok',
       'jncok',
       'jancok',
@@ -79,12 +90,15 @@ async function handlerMessages(msg) {
       'ngentod',
       'telaso',
       'tlso',
+      'babi',
     ];
 
     // Handler if received new message
     // message startsWith quran
     if (command === '!quran') {
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
       const textToSend = handle.quranSurah(value);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
@@ -94,7 +108,9 @@ async function handlerMessages(msg) {
 
       // if message startsWith select
     } else if (command === '!select') {
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
       const textToSend = handle.select(value);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
@@ -102,8 +118,12 @@ async function handlerMessages(msg) {
       await con.chatRead(nomor);
       console.log(' ..done');
     } else if (command === '!search') {
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
       const textToSend = handle.search(value.toLowerCase());
       if (textToSend.length === 1) {
         await con.sendMessage(nomor, textToSend[0], MessageType.text, {
@@ -117,7 +137,9 @@ async function handlerMessages(msg) {
       await con.chatRead(nomor);
       console.log(' ..done');
     } else if (command === '!specify') {
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
       const textToSend = handle.specify(value);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
@@ -125,7 +147,9 @@ async function handlerMessages(msg) {
       await con.chatRead(nomor);
       console.log(' ..done');
     } else if (command === '!command') {
-      process.stdout.write(`\r [${jam}] ${user} Mengirim permintaan: ${pesan} `);
+      process.stdout.write(
+        `\r [${jam}] ${user} Mengirim permintaan: ${pesan} `,
+      );
       const textToSend = handle.command(nama);
       await con.sendMessage(nomor, textToSend, MessageType.text, {
         quoted: msg,
@@ -134,9 +158,10 @@ async function handlerMessages(msg) {
       console.log(' ..done');
     } else if (command === '!broadcast') {
       let broadcast = '\n';
-      if (nomor === '6281242873775@s.whatsapp.net') {
+      if (nomor === '6281242873775@s.whatsapp.net' || msg.participant === '6281242873775@s.whatsapp.net') {
         if (value === '') {
           con.sendMessage(nomor, 'Text nya bang jago', MessageType.text);
+          con.chatRead(nomor);
         } else {
           broadcast += '\n*[ OWNER BROADCAST ]*\n';
           broadcast += `\n${value}`;
@@ -160,8 +185,10 @@ async function handlerMessages(msg) {
       const pesanlist = pesan.toLowerCase().split(' ');
       pesanlist.forEach((kata) => {
         if (badword.includes(kata)) {
-          process.stdout.write(`\r [${jam}] ${user} badword detected: ${pesan} `);
-          textToSend = 'Jangan selalu ngebadword kawan. Itu sangat tidak baik';
+          process.stdout.write(
+            `\r [${jam}] ${user} badword detected: ${pesan} `,
+          );
+          textToSend = 'Astagfirullah, jangan selalu ngebadword kawan. Itu sangat tidak baik';
           return;
         }
         if (nomor.endsWith('net') && textToSend === '') {
@@ -186,7 +213,7 @@ async function messagesHandler() {
       const content = fs.readFileSync('users.txt', 'utf-8');
       if (
         content.includes(chat.jid) === false
-        && chat.jid.includes('story') === false
+        && chat.jid.includes('status') === false
       ) {
         console.log(`[${jam}] Added new user`);
         fs.writeFileSync('users.txt', `${chat.jid}\n`, { flag: 'a+' });
@@ -198,6 +225,9 @@ async function messagesHandler() {
       unread.forEach(async (m) => {
         try {
           await handlerMessages(m);
+          if (m.key.remoteJid.endsWith('.us')) {
+            con.chatRead(m.key.remoteJid);
+          }
         } catch (err) {
           console.log(`[${jam}] ${err}`);
         }
@@ -207,16 +237,18 @@ async function messagesHandler() {
   await con.on('message-new', async (msg) => {
     try {
       const content = fs.readFileSync('users.txt', 'utf-8');
-      if (content.includes(msg.key.remoteJid) === false) {
-        console.log(`[${jam}] Added new user`);
-        fs.writeFileSync('users.txt', `${msg.key.remoteJid}\n`, { flag: 'a+' });
+      if (content.includes(msg.key.remoteJid) === false && msg.key.remoteJid !== 'status@broadcast') {
         console.log(`[${jam}] Added new user`);
         fs.writeFileSync('users.txt', `${msg.key.remoteJid}\n`, { flag: 'a+' });
       }
-      handlerMessages(msg);
+      if (msg.key.remoteJid !== 'status@broadcast') {
+        handlerMessages(msg);
+        if (msg.key.remoteJid.endsWith('.us')) {
+          con.chatRead(msg.key.remoteJid);
+        }
+      }
     } catch (err) {
       console.log(`[${jam}] ${err}`);
-      handlerMessages(msg);
     }
   });
 }
