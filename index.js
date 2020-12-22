@@ -12,7 +12,6 @@ const qrcode = require('qrcode-terminal');
 const moment = require('moment');
 const { WAConnection, MessageType, WA_MESSAGE_STUB_TYPE } = require('@adiwajshing/baileys');
 
-const jam = moment().format('HH:mm:ss');
 const express = require('express');
 const path = require('path');
 const { setMaxListeners } = require('process');
@@ -37,7 +36,7 @@ con.on('qr', (qr) => {
 });
 con.on('credentials-updated', () => {
   // save credentials whenever updated
-  console.log(`[${jam}] Credentials update`);
+  console.log(`[${moment().format(('HH:mm:ss'))}] Credentials update`);
   // get all the auth info we need to restore this session
   const authInfo = con.base64EncodedAuthInfo();
   fs.writeFileSync('./session.json', JSON.stringify(authInfo, null, '\t')); // save this info to a file
@@ -52,7 +51,8 @@ const split = (string) => [
 ];
 
 async function handlerMessages(msg) {
-  if (msg.message !== null) {
+  const jam = moment().format('HH:mm:ss');
+  if (msg.message) {
     let user = '';
     const nomor = msg.key.remoteJid;
     const pesan = msg.message.extendedTextMessage !== null && !msg.key.fromMe
@@ -94,6 +94,12 @@ async function handlerMessages(msg) {
     ];
 
     // Handler if received new message
+    const type = Object.keys(msg.message)[0];
+    if (type === 'stickerMessage' && !msg.key.fromMe && nomor.endsWith('.net')) {
+      const buffer = await con.downloadMediaMessage(msg);
+      con.sendMessage(nomor, buffer, MessageType.sticker);
+      con.chatRead(nomor);
+    }
     // message startsWith quran
     if (command === '!quran') {
       process.stdout.write(
@@ -201,7 +207,7 @@ async function handlerMessages(msg) {
         await con.chatRead(nomor);
       }
     }
-  }
+  } else { return }
 }
 
 con.setMaxListeners(50);
@@ -215,7 +221,7 @@ async function messagesHandler() {
         content.includes(chat.jid) === false
         && chat.jid.includes('status') === false
       ) {
-        console.log(`[${jam}] Added new user`);
+        console.log(`[${moment().format('HH:mm:ss')}] Added new user`);
         fs.writeFileSync('users.txt', `${chat.jid}\n`, { flag: 'a+' });
       }
     });
@@ -229,7 +235,7 @@ async function messagesHandler() {
             con.chatRead(m.key.remoteJid);
           }
         } catch (err) {
-          console.log(`[${jam}] ${err}`);
+          console.log(`[${moment().format('HH:mm:ss')}] ${err}`);
         }
       });
     }
@@ -238,7 +244,7 @@ async function messagesHandler() {
     try {
       const content = fs.readFileSync('users.txt', 'utf-8');
       if (content.includes(msg.key.remoteJid) === false && msg.key.remoteJid !== 'status@broadcast') {
-        console.log(`[${jam}] Added new user`);
+        console.log(`[${moment().format('HH:mm:ss')}] Added new user`);
         fs.writeFileSync('users.txt', `${msg.key.remoteJid}\n`, { flag: 'a+' });
       }
       if (msg.key.remoteJid !== 'status@broadcast') {
@@ -248,12 +254,12 @@ async function messagesHandler() {
         }
       }
     } catch (err) {
-      console.log(`[${jam}] ${err}`);
+      console.log(`[${moment().format('HH:mm:ss')}] ${err}`);
     }
   });
 }
 try {
   messagesHandler();
 } catch (err) {
-  console.log(`[${jam}] ${err}`);
+  console.log(`[${moment().format('HH:mm:ss')}] ${err}`);
 }
