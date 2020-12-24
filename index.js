@@ -14,7 +14,6 @@ const { WAConnection, MessageType, WA_MESSAGE_STUB_TYPE } = require('@adiwajshin
 
 const express = require('express');
 const path = require('path');
-const { setMaxListeners } = require('process');
 const handle = require('./lib/init');
 
 const app = express();
@@ -59,8 +58,8 @@ async function handlerMessages(msg) {
       ? msg.message.extendedTextMessage.text
       : msg.message.conversation;
     const nama = con.chats.get(msg.participant) === undefined
-      ? con.chats.get(nomor).name
-      : con.chats.get(msg.participant).name;
+      ? con.contacts[nomor].notify
+      : con.contacts[msg.participant].notify;
     if (nomor.endsWith('us')) {
       user = `${nama} di grub ${con.chats.get(nomor).name}`;
     } else if (nomor.endsWith('net')) {
@@ -163,19 +162,22 @@ async function handlerMessages(msg) {
       await con.chatRead(nomor);
       console.log(' ..done');
     } else if (command === '!broadcast') {
-      let broadcast = '\n';
+      let broadcast = '';
       if (nomor === '6281242873775@s.whatsapp.net' || msg.participant === '6281242873775@s.whatsapp.net') {
         if (value === '') {
           con.sendMessage(nomor, 'Text nya bang jago', MessageType.text);
           con.chatRead(nomor);
         } else {
-          broadcast += '\n*[ OWNER BROADCAST ]*\n';
           broadcast += `\n${value}`;
           const allUser = fs.readFileSync('./users.txt', 'utf-8').split('\n');
           allUser.pop();
           await allUser.forEach(async (pengguna) => {
-            await con.sendMessage(pengguna, broadcast, MessageType.text);
-            await con.chatRead(nomor);
+            for (let i = 0; i <= 100000; i++) {
+              if (i === 100000) {
+                con.sendMessage(pengguna, broadcast, MessageType.text);
+                con.chatRead(nomor);
+              }
+            }
           });
         }
       } else {
@@ -207,51 +209,51 @@ async function handlerMessages(msg) {
         await con.chatRead(nomor);
       }
     }
-  } else { return }
+  }
 }
-
-con.setMaxListeners(50);
-async function messagesHandler() {
-  await con.on('open', async () => {
-    // firstly running, it will be get all unread messages
-    const allChat = await con.chats.toJSON();
-    await allChat.forEach((chat) => {
-      const content = fs.readFileSync('users.txt', 'utf-8');
-      if (
-        content.includes(chat.jid) === false
-        && chat.jid.includes('status') === false
-      ) {
-        console.log(`[${moment().format('HH:mm:ss')}] Added new user`);
-        fs.writeFileSync('users.txt', `${chat.jid}\n`, { flag: 'a+' });
+async function getMessagesUnread() {
+  const getunread = await con.loadAllUnreadMessages();
+  const results = [...new Set(getunread)];
+  if (results.length !== 0) {
+    results.forEach(async (m) => {
+      try {
+        await handlerMessages(m);
+        if (m.key.remoteJid.endsWith('.us')) {
+          con.chatRead(m.key.remoteJid);
+        }
+      } catch (err) {
+        console.log(` [${moment().format('HH:mm:ss')}] ${err}`);
       }
     });
-    const getunread = await con.loadAllUnreadMessages();
-    const unread = [...new Set(getunread)];
-    if (unread.length !== 0) {
-      unread.forEach(async (m) => {
-        try {
-          await handlerMessages(m);
-          if (m.key.remoteJid.endsWith('.us')) {
-            con.chatRead(m.key.remoteJid);
-          }
-        } catch (err) {
-          console.log(`[${moment().format('HH:mm:ss')}] ${err}`);
-        }
-      });
+  }
+  const allChat = await con.chats.toJSON();
+  await allChat.forEach((chat) => {
+    const allready = fs.readFileSync('users.txt', 'utf-8');
+    if (allready.includes(chat.jid) === false && chat.jid.includes('status') === false) {
+      console.log(` [${moment().format('HH:mm:ss')}] Added new user: ${con.contacts[chat.jid].notify}`);
+      fs.writeFileSync('users.txt', `${chat.jid}\n`, { flag: 'a+' });
     }
   });
+}
+
+async function messagesHandler() {
+  let done = false;
   await con.on('message-new', async (msg) => {
     try {
       const content = fs.readFileSync('users.txt', 'utf-8');
       if (content.includes(msg.key.remoteJid) === false && msg.key.remoteJid !== 'status@broadcast') {
-        console.log(`[${moment().format('HH:mm:ss')}] Added new user`);
+        console.log(`[${moment().format('HH:mm:ss')}] Added new user: ${con.contacts[msg.key.remoteJid].notify}`);
         fs.writeFileSync('users.txt', `${msg.key.remoteJid}\n`, { flag: 'a+' });
       }
       if (msg.key.remoteJid !== 'status@broadcast') {
-        handlerMessages(msg);
+        await handlerMessages(msg);
         if (msg.key.remoteJid.endsWith('.us')) {
           con.chatRead(msg.key.remoteJid);
         }
+      }
+      if (!done) {
+        getMessagesUnread();
+        done = true;
       }
     } catch (err) {
       console.log(`[${moment().format('HH:mm:ss')}] ${err}`);
